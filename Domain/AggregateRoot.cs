@@ -4,8 +4,6 @@ using System.Linq;
 
 namespace MyRental
 {
-    public interface IDomainEvent { }
-
     public abstract class AggregateRoot
     {
         public Guid Id { get; protected set; }

@@ -1,15 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 
 namespace MyRental
@@ -32,10 +25,11 @@ namespace MyRental
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "MyRental", Version = "v1" });
             });
 
-            services.AddTransient<RecordingRepository>();
             services.AddTransient<IEventBus, MyEventBus>();
-            services.AddTransient<UnitOfWork>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddTransient<RecordingRepository>();
             services.AddSingleton<Database>();
+            services.AddTransient<CreateRecording.Handler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

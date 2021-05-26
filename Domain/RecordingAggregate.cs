@@ -2,30 +2,15 @@ using System;
 
 namespace MyRental
 {
-    public record RecordingAggregateCreatedEvent : IDomainEvent
-    {
-        public Guid Id;
-        public string Name;
-        public string Artist;
-        public int Year;
-    }
-
     public class RecordingAggregate : AggregateRoot
     {
         private RecordingAggregate() { }
         public string Name { get; private set; }
 
-        public static RecordingAggregate CreateFromDb(Recording r)
-        {
-            var agg = new RecordingAggregate();
-            agg.Name = r.Name;
-            return agg;
-        }
-
         public static RecordingAggregate Create(Guid id, string name, string artist, int year)
         {
             var agg = new RecordingAggregate();
-            agg.RaiseEvent(new RecordingAggregateCreatedEvent
+            agg.RaiseEvent(new RecordingCreatedEvent
             {
                 Id = id,
                 Name = name,
@@ -35,7 +20,14 @@ namespace MyRental
             return agg;
         }
 
-        public void Apply(RecordingAggregateCreatedEvent ev)
+        public static RecordingAggregate CreateFromDb(Recording r)
+        {
+            var agg = new RecordingAggregate();
+            agg.Name = r.Name;
+            return agg;
+        }
+
+        public void Apply(RecordingCreatedEvent ev)
         {
             Id = ev.Id;
             Name = ev.Name;
