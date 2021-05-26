@@ -15,10 +15,9 @@ namespace MyRental
         private RecordingAggregate() { }
         public string Name { get; private set; }
 
-        public static RecordingAggregate FromDb(Recording r)
+        public static RecordingAggregate CreateFromDb(Recording r)
         {
             var agg = new RecordingAggregate();
-            // RecordingAggregate.Create();
             agg.Name = r.Name;
             return agg;
         }

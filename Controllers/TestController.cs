@@ -25,7 +25,9 @@ namespace MyRental.Controllers
             var artist = "Radiohead";
             var year = 1997;
             var agg = RecordingAggregate.Create(id, name, artist, year);
+
             await _unitOfWork.Save(agg);
+
             var isSuccess = false;
             try
             {

@@ -13,13 +13,9 @@ namespace MyRental
             _db = db;
         }
 
-        public Task Handle(RecordingAggregateCreatedEvent ev)
+        public async Task Handle(RecordingAggregateCreatedEvent ev)
         {
-            _db.AddAction(() =>
-            {
-                _db.Recordings.Add(new Recording(ev.Id, ev.Name, ev.Artist, ev.Year));
-            });
-            return Task.CompletedTask;
+            await _db.AddAction(() => _db.Recordings.Add(new Recording(ev.Id, ev.Name, ev.Artist, ev.Year)));
         }
     }
 
@@ -57,8 +53,9 @@ namespace MyRental
 
         public UnitOfWork(IEventBus eventBus, Database db, RecordingRepository recordingRepo)
         {
-            _eventBus = eventBus;
             _db = db;
+            _eventBus = eventBus;
+
             RecordingRepo = recordingRepo;
         }
 
@@ -90,17 +87,11 @@ namespace MyRental
 
         public async Task Commit()
         {
-            await CommitTransactionToDatabase();
+            // Randomly throw to emulate when db throws.
+            if (DateTime.Now.Second % 2 == 0) throw new Exception("Error saving to db");
+
+            await _db.Commit();
             ClearUnsaved();
-        }
-
-        private Task CommitTransactionToDatabase()
-        {
-            var s = DateTime.Now.Second;
-            if (s % 2 == 0) throw new Exception("Error saving to db");
-            _db.Actions.ForEach(a => a());
-
-            return Task.CompletedTask;
         }
     }
 
@@ -120,9 +111,9 @@ namespace MyRental
 
         public RecordingAggregate GetById(Guid id)
         {
-            var r = _db.Recordings.FirstOrDefault(r => r.Id == id);
+            var recordingFromDb = _db.Recordings.FirstOrDefault(r => r.Id == id);
 
-            return RecordingAggregate.FromDb(r);
+            return RecordingAggregate.CreateFromDb(recordingFromDb);
         }
 
     }
