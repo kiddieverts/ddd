@@ -12,6 +12,7 @@ namespace MyRental
 
         public async Task Handle(RecordingCreatedEvent ev)
         {
+            // TODO: Use real database instead
             await _db.AddAction(() => _db.Recordings.Add(new Recording(ev.Id, ev.Name, ev.Artist, ev.Year)));
         }
     }

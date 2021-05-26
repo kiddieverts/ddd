@@ -9,6 +9,7 @@ namespace MyRental
 
         public static RecordingAggregate Create(Guid id, string name, string artist, int year)
         {
+            // TODO: Validation
             var agg = new RecordingAggregate();
             agg.RaiseEvent(new RecordingCreatedEvent
             {
@@ -31,6 +32,17 @@ namespace MyRental
         {
             Id = ev.Id;
             Name = ev.Name;
+        }
+
+        protected override void ApplyEvent(IDomainEvent @event)
+        {
+            Action fn = @event switch
+            {
+                RecordingCreatedEvent => () => Apply((RecordingCreatedEvent)@event),
+                _ => () => { }
+            };
+
+            fn();
         }
     }
 }

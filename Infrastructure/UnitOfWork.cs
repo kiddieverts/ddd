@@ -17,7 +17,7 @@ namespace MyRental
 
         private List<RecordingAggregate> _unsavedAggregates { get; set; } = new List<RecordingAggregate>();
 
-        private void ClearUnsaved()
+        private void ClearUnsavedAggregates()
         {
             _unsavedAggregates.ForEach(agg => agg.ClearUncommittedEvents());
             _unsavedAggregates.Clear();
@@ -31,7 +31,7 @@ namespace MyRental
             if (DateTime.Now.Second % 2 == 0) throw new Exception("Error saving to db");
 
             await _db.Commit();
-            ClearUnsaved();
+            ClearUnsavedAggregates();
         }
     }
 }

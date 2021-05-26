@@ -17,9 +17,10 @@ namespace MyRental
         protected void RaiseEvent<TEvent>(TEvent ev)
             where TEvent : IDomainEvent
         {
-            ApplyEvent(ev);
             _uncommittedEvents.Add(ev);
+            ApplyEvent(ev);
         }
-        void ApplyEvent(IDomainEvent @event) => ((dynamic)this).Apply((dynamic)@event);
+
+        protected abstract void ApplyEvent(IDomainEvent @event);
     }
 }
