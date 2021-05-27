@@ -22,13 +22,8 @@ namespace MyRental
         public async Task Save(RecordingAggregate agg)
         {
             var events = agg.GetUncommittedEvents();
-
-            foreach (var ev in events)
-            {
-                await _eventBus.Publish(ev);
-            }
-
-            _unitOfWork.AddToUnsaved(agg);
+            await _unitOfWork.SaveEvents(events);
+            agg.ClearUncommittedEvents();
         }
     }
 

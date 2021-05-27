@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -15,18 +14,27 @@ namespace MyRental
             _eventBus = eventBus;
         }
 
-        private List<RecordingAggregate> _unsavedAggregates { get; set; } = new List<RecordingAggregate>();
+        private List<IDomainEvent> _uncommitedEvents { get; set; } = new List<IDomainEvent> { };
 
         private void ClearUnsavedAggregates()
         {
-            _unsavedAggregates.ForEach(agg => agg.ClearUncommittedEvents());
-            _unsavedAggregates.Clear();
+            _uncommitedEvents.Clear();
         }
 
-        public void AddToUnsaved(RecordingAggregate agg) => _unsavedAggregates.Add(agg);
+        public async Task SaveEvents(IEnumerable<IDomainEvent> events)
+        {
+            foreach (var ev in events)
+            {
+                _uncommitedEvents.Add(ev);
+                await _eventBus.Publish(ev);
+            }
+        }
 
         public async Task Commit()
         {
+            // Randomly throw to emulate when db throws.
+            // if (DateTime.Now.Second % 2 == 0) throw new Exception("Error saving to db");
+
             await _db.Commit();
             ClearUnsavedAggregates();
         }

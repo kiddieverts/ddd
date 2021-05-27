@@ -1,10 +1,11 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace MyRental
 {
     public interface IUnitOfWork
     {
-        void AddToUnsaved(RecordingAggregate agg);
+        Task SaveEvents(IEnumerable<IDomainEvent> events);
         Task Commit();
     }
 }
