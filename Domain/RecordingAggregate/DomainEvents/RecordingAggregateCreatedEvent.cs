@@ -4,9 +4,9 @@ namespace MyRental
 {
     public record RecordingCreatedEvent : IDomainEvent
     {
-        public Guid Id;
-        public string Name;
-        public string Artist;
-        public int Year;
+        public Guid Id { get; init; }
+        public string Name { get; init; }
+        public string Artist { get; init; }
+        public int Year { get; init; }
     }
 }
