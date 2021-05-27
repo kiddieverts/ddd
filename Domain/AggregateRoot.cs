@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace MyRental
 {
-    public abstract class AggregateRoot
+    public class AggregateRoot
     {
         public Guid Id { get; protected set; }
 
@@ -14,13 +14,11 @@ namespace MyRental
 
         public IEnumerable<IDomainEvent> GetUncommittedEvents() => _uncommittedEvents.AsEnumerable();
 
-        protected void RaiseEvent<TEvent>(TEvent ev)
+        protected void RaiseEvent<TEvent>(TEvent ev, Action<TEvent> fn)
             where TEvent : IDomainEvent
         {
             _uncommittedEvents.Add(ev);
-            ApplyEvent(ev);
+            fn(ev);
         }
-
-        protected abstract void ApplyEvent(IDomainEvent @event);
     }
 }

@@ -11,13 +11,20 @@ namespace MyRental
         {
             // TODO: Validation
             var agg = new RecordingAggregate();
-            agg.RaiseEvent(new RecordingCreatedEvent
+            var ev = new RecordingCreatedEvent
             {
                 Id = id,
                 Name = name,
                 Artist = artist,
                 Year = year
+            };
+
+            agg.RaiseEvent(ev, e =>
+            {
+                agg.Id = e.Id;
+                agg.Name = e.Name;
             });
+
             return agg;
         }
 
@@ -32,30 +39,12 @@ namespace MyRental
         public void Rename(string name)
         {
             // TODO: Validation
-            RaiseEvent(new RecordingRenamedEvent(Id, name));
-        }
-
-        public void Apply(RecordingCreatedEvent ev)
-        {
-            Id = ev.Id;
-            Name = ev.Name;
-        }
-
-        public void Apply(RecordingRenamedEvent ev)
-        {
-            Name = ev.Name;
-        }
-
-        protected override void ApplyEvent(IDomainEvent @event)
-        {
-            Action fn = @event switch
+            var ev = new RecordingRenamedEvent(Id, name);
+            RaiseEvent(ev, e =>
             {
-                RecordingCreatedEvent => () => Apply((RecordingCreatedEvent)@event),
-                RecordingRenamedEvent => () => Apply((RecordingRenamedEvent)@event),
-                _ => () => { }
-            };
-
-            fn();
+                Id = e.Id;
+                Name = e.Name;
+            });
         }
     }
 }
