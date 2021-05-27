@@ -40,7 +40,7 @@ namespace MyRental
                 if (isSuccess)
                 {
                     var agg2 = _recordingRepo.GetById(command.Id);
-                    Console.WriteLine("FROM DB ... " + agg2.Name);
+                    Console.WriteLine("FROM DB ... " + agg2.Name + ".. Id .. " + agg.Id);
                 }
 
                 Console.WriteLine("Events uncommitted ... " + agg.GetUncommittedEvents().Count());

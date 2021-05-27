@@ -30,6 +30,7 @@ namespace MyRental
             services.AddTransient<RecordingRepository>();
             services.AddSingleton<Database>();
             services.AddTransient<CreateRecording.Handler>();
+            services.AddTransient<RenameRecording.Handler>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

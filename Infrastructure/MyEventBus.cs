@@ -17,6 +17,7 @@ namespace MyRental
             Task handle = ev switch
             {
                 RecordingCreatedEvent => new RecordingCreatedEventHandler(_db).Handle((RecordingCreatedEvent)ev),
+                RecordingRenamedEvent => new RecordingRenamedEventHandler(_db).Handle((RecordingRenamedEvent)ev),
                 _ => throw new Exception("")
             };
 

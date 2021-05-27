@@ -27,9 +27,6 @@ namespace MyRental
 
         public async Task Commit()
         {
-            // Randomly throw to emulate when db throws.
-            if (DateTime.Now.Second % 2 == 0) throw new Exception("Error saving to db");
-
             await _db.Commit();
             ClearUnsavedAggregates();
         }
