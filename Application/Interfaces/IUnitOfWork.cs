@@ -5,7 +5,7 @@ namespace MyRental
 {
     public interface IUnitOfWork
     {
-        Task SaveEvents(IEnumerable<IDomainEvent> events);
+        Task Save<T>(T agg) where T : AggregateRoot;
         Task Commit();
     }
 }

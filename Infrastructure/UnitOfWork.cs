@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -15,28 +16,42 @@ namespace MyRental
         }
 
         private List<IDomainEvent> _uncommitedEvents { get; set; } = new List<IDomainEvent> { };
+        private List<PersistedEvent> _uncommitedPersistedEvents { get; set; } = new List<PersistedEvent> { };
 
-        private void ClearUnsavedAggregates()
+        private void Cleanup()
         {
             _uncommitedEvents.Clear();
+            _uncommitedPersistedEvents.Clear();
         }
 
-        public async Task SaveEvents(IEnumerable<IDomainEvent> events)
+        public async Task Save<T>(T agg) where T : AggregateRoot
         {
-            foreach (var ev in events)
+            var i = agg.Version;
+            foreach (var ev in agg.GetUncommittedEvents())
             {
+                i++;
+                var p = new PersistedEvent(ev.ToString(), i, agg.Id);
+
                 _uncommitedEvents.Add(ev);
+                _uncommitedPersistedEvents.Add(p);
+
                 await _eventBus.Publish(ev);
             }
         }
 
         public async Task Commit()
         {
-            // Randomly throw to emulate when db throws.
-            // if (DateTime.Now.Second % 2 == 0) throw new Exception("Error saving to db");
+            foreach (var persistedEvent in _uncommitedPersistedEvents)
+            {
+                await _db.AddAction(() =>
+                {
+                    _db.Events.Add(persistedEvent);
+                    Console.WriteLine(persistedEvent);
+                });
+            }
 
             await _db.Commit();
-            ClearUnsavedAggregates();
+            Cleanup();
         }
     }
 }

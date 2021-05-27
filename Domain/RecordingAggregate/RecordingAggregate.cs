@@ -4,21 +4,22 @@ namespace MyRental
 {
     public class RecordingAggregate : AggregateRoot
     {
-        private RecordingAggregate() { }
+        public RecordingAggregate(long version) : base(version) { }
+
         public string Name { get; private set; }
 
-        public static RecordingAggregate CreateFromDb(Recording r)
+        public static RecordingAggregate CreateFromDb(Recording r, long? version = -1)
         {
-            var agg = new RecordingAggregate();
-            agg.Name = r.Name;
+            var agg = new RecordingAggregate((long)version);
             agg.Id = r.Id;
+            agg.Name = r.Name;
             return agg;
         }
 
         public static RecordingAggregate Create(Guid id, string name, string artist, int year)
         {
             // TODO: Validation
-            var agg = new RecordingAggregate();
+            var agg = new RecordingAggregate(AggregateRoot.InitalVersion);
             var ev = new RecordingCreatedEvent
             {
                 Id = id,
@@ -31,7 +32,7 @@ namespace MyRental
             return agg;
         }
 
-        public void Apply(RecordingCreatedEvent e)
+        private void Apply(RecordingCreatedEvent e)
         {
             Id = e.Id;
             Name = e.Name;
@@ -44,13 +45,13 @@ namespace MyRental
             RaiseEvent(ev);
         }
 
-        public void Apply(RecordingRenamedEvent e)
+        private void Apply(RecordingRenamedEvent e)
         {
             Id = e.Id;
             Name = e.Name;
         }
 
-        public override void ApplyEvent(IDomainEvent ev)
+        public override void UpdateInternalState(IDomainEvent ev)
         {
             Action fn = ev switch
             {
