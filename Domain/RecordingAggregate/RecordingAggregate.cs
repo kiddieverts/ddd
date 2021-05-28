@@ -8,8 +8,10 @@ namespace MyRental
 
         public string Name { get; private set; }
 
-        public static RecordingAggregate CreateFromDb(Recording r, long? version = -1)
+        public record CreateFromDbInput(Guid Id, string Name);
+        public static RecordingAggregate CreateFromDb(CreateFromDbInput r, long? version = -1)
         {
+            if (r is null) throw new NullReferenceException(nameof(r));
             var agg = new RecordingAggregate((long)version);
             agg.Id = r.Id;
             agg.Name = r.Name;
@@ -51,7 +53,7 @@ namespace MyRental
             Name = e.Name;
         }
 
-        protected override void UpdateInternalState(IDomainEvent ev)
+        protected override void ApplyEvent(IDomainEvent ev)
         {
             Action fn = ev switch
             {

@@ -44,11 +44,8 @@ namespace MyRental
         {
             foreach (var persistedEvent in _uncommitedPersistedEvents)
             {
-                await _db.AddAction(() =>
-                {
-                    _db.Events.Add(persistedEvent);
-                    Console.WriteLine(persistedEvent);
-                });
+                await _db.AddAction(() => _db.Events.Add(persistedEvent));
+                Console.WriteLine(persistedEvent);
             }
 
             await _db.Commit();

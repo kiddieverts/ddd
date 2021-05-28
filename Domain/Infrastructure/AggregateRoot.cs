@@ -27,12 +27,7 @@ namespace MyRental
             ApplyEvent(ev);
         }
 
-        protected abstract void UpdateInternalState(IDomainEvent ev);
+        protected abstract void ApplyEvent(IDomainEvent ev);
 
-        private void ApplyEvent(IDomainEvent ev)
-        {
-            Version = Version + 1;
-            UpdateInternalState(ev);
-        }
     }
 }

@@ -12,8 +12,9 @@ namespace MyRental
         {
             var recordingFromDb = _db.Recordings.FirstOrDefault(r => r.Id == id);
             long? version = GetAggregateVersion(id);
+            var input = new RecordingAggregate.CreateFromDbInput(recordingFromDb.Id, recordingFromDb.Name);
 
-            return RecordingAggregate.CreateFromDb(recordingFromDb, version);
+            return RecordingAggregate.CreateFromDb(input, version);
         }
     }
 }
