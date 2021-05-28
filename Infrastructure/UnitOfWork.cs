@@ -29,11 +29,12 @@ namespace MyRental
             var i = agg.Version;
             foreach (var ev in agg.GetUncommittedEvents())
             {
-                i++;
-                var p = new PersistedEvent(ev.ToString(), i, agg.Id);
+                i++; // TODO: <-- hmmmm
+                var persistedEvent = new PersistedEvent(ev.ToString(), i, agg.Id);
 
+                // TODO: Hmmm.... make dry
                 _uncommitedEvents.Add(ev);
-                _uncommitedPersistedEvents.Add(p);
+                _uncommitedPersistedEvents.Add(persistedEvent);
 
                 await _eventBus.Publish(ev);
             }

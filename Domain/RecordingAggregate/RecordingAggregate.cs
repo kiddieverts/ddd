@@ -51,7 +51,7 @@ namespace MyRental
             Name = e.Name;
         }
 
-        public override void UpdateInternalState(IDomainEvent ev)
+        protected override void UpdateInternalState(IDomainEvent ev)
         {
             Action fn = ev switch
             {

@@ -24,12 +24,12 @@ namespace MyRental
         protected void RaiseEvent(IDomainEvent ev)
         {
             _uncommittedEvents.Add(ev);
-            UpdateInternalState(ev);
+            ApplyEvent(ev);
         }
 
-        public abstract void UpdateInternalState(IDomainEvent ev);
+        protected abstract void UpdateInternalState(IDomainEvent ev);
 
-        public void ApplyEvent(IDomainEvent ev)
+        private void ApplyEvent(IDomainEvent ev)
         {
             Version = Version + 1;
             UpdateInternalState(ev);
