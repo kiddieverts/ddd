@@ -8,13 +8,11 @@ namespace MyRental
     {
         protected readonly IUnitOfWork _unitOfWork;
         protected readonly Database _db;
-        private readonly IEventBus _eventBus;
 
-        public RepositoryBase(IUnitOfWork unitOfWork, Database db, IEventBus eventBus)
+        public RepositoryBase(IUnitOfWork unitOfWork, Database db)
         {
             _unitOfWork = unitOfWork;
             _db = db;
-            _eventBus = eventBus;
         }
 
         public abstract T GetById(Guid id);

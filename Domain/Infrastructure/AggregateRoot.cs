@@ -11,7 +11,7 @@ namespace MyRental
         protected static long InitalVersion => -1;
         private readonly ICollection<IDomainEvent> _uncommittedEvents = new LinkedList<IDomainEvent>();
 
-        public AggregateRoot(long version)
+        protected AggregateRoot(long version)
         {
             Version = version;
         }

@@ -4,19 +4,9 @@ namespace MyRental
 {
     public class RecordingAggregate : AggregateRoot
     {
-        public RecordingAggregate(long version) : base(version) { }
-
         public string Name { get; private set; }
 
-        public record CreateFromDbInput(Guid Id, string Name);
-        public static RecordingAggregate CreateFromDb(CreateFromDbInput r, long? version = -1)
-        {
-            if (r is null) throw new NullReferenceException(nameof(r));
-            var agg = new RecordingAggregate((long)version);
-            agg.Id = r.Id;
-            agg.Name = r.Name;
-            return agg;
-        }
+        public RecordingAggregate(long version) : base(version) { }
 
         public static RecordingAggregate Create(Guid id, string name, string artist, int year)
         {
@@ -40,6 +30,16 @@ namespace MyRental
             Name = e.Name;
         }
 
+        public record CreateFromDbInput(Guid Id, string Name);
+        public static RecordingAggregate CreateFromDb(CreateFromDbInput r, long? version = -1)
+        {
+            if (r is null) throw new NullReferenceException(nameof(r));
+            var agg = new RecordingAggregate((long)version);
+            agg.Id = r.Id;
+            agg.Name = r.Name;
+            return agg;
+        }
+
         public void Rename(string name)
         {
             // TODO: Validation
@@ -59,7 +59,7 @@ namespace MyRental
             {
                 RecordingCreatedEvent => () => Apply((RecordingCreatedEvent)ev),
                 RecordingRenamedEvent => () => Apply((RecordingRenamedEvent)ev),
-                _ => () => { }
+                _ => () => throw new Exception("Not supported") // TODO: Hmmm
             };
 
             fn();

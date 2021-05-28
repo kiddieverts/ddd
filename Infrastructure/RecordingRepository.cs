@@ -5,8 +5,8 @@ namespace MyRental
 {
     public class RecordingRepository : RepositoryBase<RecordingAggregate>, IRepository<RecordingAggregate>
     {
-        public RecordingRepository(IUnitOfWork unitOfWork, Database db, IEventBus eventBus)
-            : base(unitOfWork, db, eventBus) { }
+        public RecordingRepository(IUnitOfWork unitOfWork, Database db)
+            : base(unitOfWork, db) { }
 
         public override RecordingAggregate GetById(Guid id)
         {
