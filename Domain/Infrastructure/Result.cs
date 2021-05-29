@@ -27,6 +27,15 @@ namespace MyRental
                 Errors = new List<string> { err }
             };
         }
+
+        public static Result<T> Failure(List<string> err)
+        {
+            return new Result<T>
+            {
+                IsSuccess = false,
+                Errors = err
+            };
+        }
     }
 
 }

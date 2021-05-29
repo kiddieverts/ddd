@@ -8,8 +8,10 @@ namespace MyRental
 
         public RecordingAggregate(long version) : base(version) { }
 
-        public static RecordingAggregate Create(Guid id, string name, string artist, int year)
+        public static Result<RecordingAggregate> Create(Guid id, string name, string artist, int year)
         {
+            if (name == "") return Result<RecordingAggregate>.Failure("Error creating RecordingAggregate");
+
             // TODO: Validation
             var agg = new RecordingAggregate(AggregateRoot.InitalVersion);
             var ev = new RecordingCreatedEvent
@@ -21,7 +23,7 @@ namespace MyRental
             };
 
             agg.RaiseEvent(ev);
-            return agg;
+            return Result<RecordingAggregate>.Succeed(agg);
         }
 
         private void Apply(RecordingCreatedEvent e)
