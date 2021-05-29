@@ -42,11 +42,15 @@ namespace MyRental
             return agg;
         }
 
-        public void Rename(string name)
+        public Result<Unit> Rename(string name)
         {
             // TODO: Validation
+            if (name == "") return Result<Unit>.Failure("Error renaming...");
+
             var ev = new RecordingRenamedEvent(Id, name);
             RaiseEvent(ev);
+
+            return Result<Unit>.Succeed(new Unit());
         }
 
         private void Apply(RecordingRenamedEvent e)
