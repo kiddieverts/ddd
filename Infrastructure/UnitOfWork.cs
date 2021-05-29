@@ -8,6 +8,7 @@ namespace MyRental
     {
         public readonly IEventBus _eventBus;
         public readonly Database _db;
+        private bool _commitHasFailed = false;
 
         public UnitOfWork(IEventBus eventBus, Database db)
         {
@@ -24,7 +25,7 @@ namespace MyRental
             _uncommitedPersistedEvents.Clear();
         }
 
-        public async Task Save<T>(T agg) where T : AggregateRoot
+        public Task Save<T>(T agg) where T : AggregateRoot
         {
             var i = agg.Version;
             foreach (var ev in agg.GetUncommittedEvents())
@@ -32,24 +33,39 @@ namespace MyRental
                 i++; // TODO: <-- hmmmm
                 var persistedEvent = new PersistedEvent(ev.ToString(), i, agg.Id); // TODO: Store as Serialized JSON
 
-                // TODO: Don't add unless all publishes are ok.
                 _uncommitedEvents.Add(ev);
                 _uncommitedPersistedEvents.Add(persistedEvent);
-
-                await _eventBus.Publish(ev);
             }
+
+            return Task.CompletedTask;
         }
 
-        public async Task Commit()
+        public async Task<Result<Unit>> Commit()
         {
-            foreach (var persistedEvent in _uncommitedPersistedEvents)
-            {
-                await _db.AddAction(() => _db.Events.Add(persistedEvent));
-                Console.WriteLine(persistedEvent);
-            }
+            if (_commitHasFailed == true) return Result<Unit>.Failure("Commit has failed before. Please reload");
 
-            await _db.Commit();
-            Cleanup();
+            try
+            {
+                foreach (var persistedEvent in _uncommitedPersistedEvents)
+                {
+                    await _db.AddAction(() => _db.Events.Add(persistedEvent));
+                    Console.WriteLine(persistedEvent);
+                }
+
+                foreach (var ev in _uncommitedEvents)
+                {
+                    await _eventBus.Publish(ev);
+                }
+
+                await _db.Commit();
+                Cleanup();
+                return Result<Unit>.Succeed(new Unit());
+            }
+            catch
+            {
+                _commitHasFailed = true;
+                return Result<Unit>.Failure("Error saving to db");
+            }
         }
     }
 }

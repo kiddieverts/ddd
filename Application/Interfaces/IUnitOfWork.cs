@@ -6,6 +6,6 @@ namespace MyRental
     public interface IUnitOfWork
     {
         Task Save<T>(T agg) where T : AggregateRoot;
-        Task Commit();
+        Task<Result<Unit>> Commit();
     }
 }

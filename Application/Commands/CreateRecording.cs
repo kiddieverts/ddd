@@ -9,11 +9,10 @@ namespace MyRental
     {
         public CreateRecordingController(IMediator mediator) : base(mediator) { }
 
-        [HttpGet]
+        [HttpPost]
         [Route("test")]
-        public async Task<ActionResult<string>> CreateRecording()
+        public async Task<ActionResult<string>> CreateRecording([FromBody] CreateRecording.Command command)
         {
-            var command = new CreateRecording.Command(Guid.NewGuid(), "Ok Computer", "Radiohead", 1997);
             var result = await _mediator.Command(command);
 
             if (!result.IsSuccess)
@@ -43,6 +42,9 @@ namespace MyRental
 
             public async Task<Result<Unit>> Handle(Command command)
             {
+                // TODO: Auth
+                // TODO: Validate input
+
                 var aggResult = RecordingAggregate.Create(
                     new TrackId(command.Id),
                     TrackName.TryCreate(command.Name).Value,
@@ -58,7 +60,7 @@ namespace MyRental
                 var isSuccess = false;
                 try
                 {
-                    await _unitOfWork.Commit();
+                    await _unitOfWork.Commit(); // TODO: Handle failure
                     isSuccess = true;
                 }
                 catch
@@ -67,13 +69,6 @@ namespace MyRental
                 }
 
                 Console.WriteLine(isSuccess ? "Saving success" : "Saving failed");
-
-                if (isSuccess)
-                {
-                    var agg2 = _recordingRepo.GetById(command.Id);
-                    Console.WriteLine("FROM DB ... " + agg2.Name + ".. Id .. " + agg.Id);
-                }
-                Console.WriteLine("Events uncommitted ... " + agg.GetUncommittedEvents().Count());
 
                 return Result<Unit>.Succeed(new Unit());
             }
