@@ -5,23 +5,16 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MyRental
 {
-    [ApiController]
-    [Route("test")]
-    public class CreateRecordingController : ControllerBase
+    public class CreateRecordingController : BaseController
     {
-        private readonly CreateRecording.Handler _createRecordinghandler;
-
-        public CreateRecordingController(CreateRecording.Handler handler)
-        {
-            _createRecordinghandler = handler;
-        }
+        public CreateRecordingController(IMediator mediator) : base(mediator) { }
 
         [HttpGet]
+        [Route("test")]
         public async Task<ActionResult<string>> CreateRecording()
         {
             var command = new CreateRecording.Command(Guid.NewGuid(), "Ok Computer", "Radiohead", 1997);
-
-            var result = await _createRecordinghandler.Handle(command);
+            var result = await _mediator.Command(command);
 
             if (!result.IsSuccess)
             {
@@ -35,9 +28,9 @@ namespace MyRental
 
     public class CreateRecording
     {
-        public record Command(Guid Id, string Name, string Artist, int Year);
+        public record Command(Guid Id, string Name, string Artist, int Year) : ICommand;
 
-        public class Handler
+        public class Handler : ICommandHandler<Command>
         {
             private readonly IUnitOfWork _unitOfWork;
             private readonly RecordingRepository _recordingRepo;
@@ -48,11 +41,11 @@ namespace MyRental
                 _recordingRepo = recordingRepository;
             }
 
-            public async Task<Result<Guid>> Handle(Command command)
+            public async Task<Result<Unit>> Handle(Command command)
             {
                 var aggResult = RecordingAggregate.Create(command.Id, command.Name, command.Artist, command.Year);
 
-                if (!aggResult.IsSuccess) return Result<Guid>.Failure(aggResult.Errors);
+                if (!aggResult.IsSuccess) return Result<Unit>.Failure(aggResult.Errors);
 
                 var agg = aggResult.Value;
 
@@ -78,7 +71,7 @@ namespace MyRental
                 }
                 Console.WriteLine("Events uncommitted ... " + agg.GetUncommittedEvents().Count());
 
-                return Result<Guid>.Succeed(command.Id);
+                return Result<Unit>.Succeed(new Unit());
             }
         }
     }

@@ -30,9 +30,9 @@ namespace MyRental
             foreach (var ev in agg.GetUncommittedEvents())
             {
                 i++; // TODO: <-- hmmmm
-                var persistedEvent = new PersistedEvent(ev.ToString(), i, agg.Id);
+                var persistedEvent = new PersistedEvent(ev.ToString(), i, agg.Id); // TODO: Store as Serialized JSON
 
-                // TODO: Hmmm.... make dry
+                // TODO: Don't add unless all publishes are ok.
                 _uncommitedEvents.Add(ev);
                 _uncommitedPersistedEvents.Add(persistedEvent);
 

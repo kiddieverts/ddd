@@ -31,6 +31,7 @@ namespace MyRental
             services.AddSingleton<Database>();
             services.AddTransient<CreateRecording.Handler>();
             services.AddTransient<RenameRecording.Handler>();
+            services.AddTransient<IMediator, Mediator>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
