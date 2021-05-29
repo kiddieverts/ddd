@@ -43,7 +43,11 @@ namespace MyRental
 
             public async Task<Result<Unit>> Handle(Command command)
             {
-                var aggResult = RecordingAggregate.Create(command.Id, command.Name, command.Artist, command.Year);
+                var aggResult = RecordingAggregate.Create(
+                    new TrackId(command.Id),
+                    TrackName.TryCreate(command.Name).Value,
+                    ArtistName.TryCreate(command.Artist).Value,
+                    new Year(command.Year));
 
                 if (!aggResult.IsSuccess) return Result<Unit>.Failure(aggResult.Errors);
 
