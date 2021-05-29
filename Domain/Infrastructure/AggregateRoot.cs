@@ -27,6 +27,5 @@ namespace MyRental
         }
 
         protected abstract void ApplyEvent(IDomainEvent ev);
-
     }
 }

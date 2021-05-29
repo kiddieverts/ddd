@@ -12,7 +12,6 @@ namespace MyRental.Controllers
         private readonly CreateRecording.Handler _createRecordinghandler;
         private readonly RenameRecording.Handler _renameRecordinghandler;
 
-
         public TestController(CreateRecording.Handler handler, RenameRecording.Handler renameRecordinghandler)
         {
             _createRecordinghandler = handler;
