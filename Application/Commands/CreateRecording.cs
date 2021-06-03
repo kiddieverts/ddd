@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,14 +13,7 @@ namespace MyRental
         public async Task<ActionResult<string>> CreateRecording([FromBody] CreateRecording.Command command)
         {
             var result = await _mediator.Command(command);
-
-            if (!result.IsSuccess)
-            {
-                // TODO: Global error handling.
-                throw new Exception("Villa. " + result.Errors.Aggregate((agg, curr) => agg + "\n" + curr));
-            }
-
-            return "ok";
+            return result.Map(r => Ok("ok"), e => ValidationProblem(e.Msg)); // TODO: Make generic
         }
     }
 
@@ -40,37 +32,61 @@ namespace MyRental
                 _recordingRepo = recordingRepository;
             }
 
-            public async Task<Result<Unit>> Handle(Command command)
+            public Task<Result<Unit>> Handle(Command command)
             {
-                // TODO: Auth
-                // TODO: Validate input
+                var userId = Guid.Parse("68c6ef9d-8e25-48a0-b577-5f8ff1fae643"); // TODO: Where does this come from??
 
-                var aggResult = RecordingAggregate.Create(
-                    new TrackId(command.Id),
-                    TrackName.TryCreate(command.Name).Value,
-                    ArtistName.TryCreate(command.Artist).Value,
-                    new Year(command.Year));
+                Func<Guid, Command, Result<Command>> authorize = static (Guid uid, Command cmd) => uid == Guid.Parse("68c6ef9d-8e25-48a0-b577-5f8ff1fae643")
+                    ? Result<Command>.Succeed(cmd)
+                    : Result<Command>.Failure("Auth error: Not correct user id"); // TODO: Dont use error strings
 
-                if (!aggResult.IsSuccess) return Result<Unit>.Failure(aggResult.Errors);
-
-                var agg = aggResult.Value;
-
-                await _recordingRepo.Save(agg);
-
-                var isSuccess = false;
-                try
+                Func<Command, Result<Command>> validateInput = static (Command cmd) => // TODO: Refactor !!!
                 {
-                    await _unitOfWork.Commit(); // TODO: Handle failure
-                    isSuccess = true;
-                }
-                catch
+                    var conditions = new Condition[]
+                    {
+                        new Condition(cmd.Id.IsEmpty(), "Id can not be empty guid"),
+                        new Condition(cmd.Name.IsEmpty(), "Name can not be empty"),
+                        new Condition(cmd.Artist.IsEmpty(), "Artist can not be empty"),
+                        new Condition(cmd.Year < 1900, "Year has to be after 1900")
+                    };
+
+                    return conditions.CheckForErrors().Select(r => cmd);
+                };
+
+                Func<Command, Result<RecordingAggregate>> tryCreateAggregate = static (Command cmd) =>
                 {
-                    isSuccess = false;
-                }
+                    var id = new TrackId(cmd.Id);
+                    var name = TrackName.TryCreate(cmd.Name);
+                    var artist = ArtistName.TryCreate(cmd.Artist);
+                    var year = new Year(cmd.Year);
 
-                Console.WriteLine(isSuccess ? "Saving success" : "Saving failed");
+                    var c = new Condition[]
+                    {
+                        new Condition(!name.IsSuccess(), "Name is not correct"),
+                        new Condition(!artist.IsSuccess(), "Artist is not correct")
+                    };
 
-                return Result<Unit>.Succeed(new Unit());
+                    var validation = c.CheckForErrors();
+
+                    return validation.IsSuccess()
+                        ? RecordingAggregate.Create(id, name.GetValue(), artist.GetValue(), year)
+                        : Result<RecordingAggregate>.Failure("Failed to create aggregate");
+                };
+
+                Func<RecordingAggregate, Task<Result<Unit>>> trySaveAggregate = async agg =>
+                    await _recordingRepo.Save(agg);
+
+                Func<Unit, Task<Result<Unit>>> tryCommit = async agg =>
+                    await _unitOfWork.Commit();
+
+                Func<Guid, Command, Task<Result<Unit>>> createRecording = async (userId, command) =>
+                    await authorize(userId, command)
+                        .SelectMany(validateInput)
+                        .SelectMany(tryCreateAggregate)
+                        .SelectMany(trySaveAggregate)
+                        .SelectMany(tryCommit);
+
+                return createRecording(userId, command);
             }
         }
     }

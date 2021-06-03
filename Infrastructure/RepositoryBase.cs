@@ -17,10 +17,18 @@ namespace MyRental
 
         public abstract T GetById(Guid id);
 
-        public async Task Save(RecordingAggregate agg)
+        public async Task<Result<Unit>> Save(RecordingAggregate agg)
         {
-            await _unitOfWork.Save(agg);
-            agg.ClearUncommittedEvents();
+            try
+            {
+                await _unitOfWork.Save(agg);
+                agg.ClearUncommittedEvents();
+                return Result<Unit>.Succeed(new Unit());
+            }
+            catch
+            {
+                return Result<Unit>.Failure("Could not save aggregate to repository");
+            }
         }
 
         protected long? GetAggregateVersion(Guid aggregateId) =>

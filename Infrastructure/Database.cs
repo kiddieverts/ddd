@@ -23,7 +23,8 @@ namespace MyRental
         public Task Commit()
         {
             // Randomly throw to emulate when db throws.
-            // if (DateTime.Now.Second % 2 == 0) throw new Exception("Error saving to db");
+            // throw new Exception("assfdaasfd");
+            if (DateTime.Now.Second % 2 == 0) throw new Exception("Error saving to db");
 
             Actions.ForEach(a => a());
 
