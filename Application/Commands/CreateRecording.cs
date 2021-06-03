@@ -14,7 +14,7 @@ namespace MyRental
         public async Task<ActionResult<string>> CreateRecording([FromBody] CreateRecording.Command command)
         {
             var result = await _mediator.Command(command);
-            return result.Map(r => Ok("ok"), e => ValidationProblem(e.ToString())); // TODO: Make generic
+            return result.Map(r => Ok("ok"), e => ValidationProblem(e.Errors.Aggregate("", (agg, curr) => agg + curr.ToString() + " ... "))); // TODO: Make generic
         }
     }
 
@@ -26,69 +26,53 @@ namespace MyRental
         {
             private readonly IUnitOfWork _unitOfWork;
             private readonly RecordingRepository _recordingRepo;
+            private readonly IUserService _userService;
 
-            public Handler(IUnitOfWork unitOfWork, RecordingRepository recordingRepository)
+            public Handler(IUnitOfWork unitOfWork, RecordingRepository recordingRepository, IUserService userService)
             {
                 _unitOfWork = unitOfWork;
                 _recordingRepo = recordingRepository;
+                _userService = userService;
             }
 
-            public Task<Result<Unit>> Handle(Command command)
+            public async Task<Result<Unit>> Handle(Command command) =>
+                await Authorize(_userService.GetUserId(), command)
+                    .SelectMany(TryValidateInput)
+                    .SelectMany(TryCreateAggregate)
+                    .SelectMany(TrySaveAggregate)
+                    .SelectMany(TryCommit);
+
+            private static Result<Command> Authorize(Guid uid, Command cmd) => true
+                ? Result<Command>.Succeed(cmd)
+                : Result<Command>.Failure(NotAuthorizedError.Create(ErrorType.AuthorizationFailed));
+
+            private static Result<Command> TryValidateInput(Command cmd) =>
+                ErrorHelper.CreateEmptyErrorList()
+                    .Validate(cmd.Artist.IsEmpty(), ErrorType.ArtistNameEmpty)
+                    .Validate(cmd.Name.IsEmpty(), ErrorType.NameNotAllowed)
+                    .CheckForErrors()
+                    .Select(r => cmd);
+
+            private Result<RecordingAggregate> TryCreateAggregate(Command cmd)
             {
-                var userId = Guid.Parse("68c6ef9d-8e25-48a0-b577-5f8ff1fae643"); // TODO: Where does this come from??
+                var id = new TrackId(cmd.Id);
+                var name = TrackName.TryCreate(cmd.Name);
+                var artist = ArtistName.TryCreate(cmd.Artist);
+                var year = new Year(cmd.Year);
 
-                Func<Guid, Command, Result<Command>> authorize = static (Guid uid, Command cmd) => uid == Guid.Parse("68c6ef9d-8e25-48a0-b577-5f8ff1fae643")
-                    ? Result<Command>.Succeed(cmd)
-                    : Result<Command>.Failure(NotAuthorizedError.Create(ErrorType.AuthorizationFailed));
+                var isSuccess = ErrorHelper.CreateEmptyErrorList()
+                    .Validate(!name.IsSuccess(), ErrorType.ArtistNameEmpty)
+                    .Validate(!artist.IsSuccess(), ErrorType.NameNotAllowed)
+                    .CheckForErrors()
+                    .IsSuccess();
 
-                Func<Command, Result<Command>> validateInput = static (Command cmd) => // TODO: Refactor !!!
-                {
-                    var conditions = new Condition[]
-                    {
-                        new Condition(cmd.Id.IsEmpty(), "Id can not be empty guid"),
-                        new Condition(cmd.Name.IsEmpty(), "Name can not be empty"),
-                        new Condition(cmd.Artist.IsEmpty(), "Artist can not be empty"),
-                        new Condition(cmd.Year < 1900, "Year has to be after 1900")
-                    };
-
-                    return conditions.CheckForErrors().Select(r => cmd);
-                };
-
-                Func<Command, Result<RecordingAggregate>> tryCreateAggregate = static (Command cmd) =>
-                {
-                    var id = new TrackId(cmd.Id);
-                    var name = TrackName.TryCreate(cmd.Name);
-                    var artist = ArtistName.TryCreate(cmd.Artist);
-                    var year = new Year(cmd.Year);
-
-                    var c = new Condition[]
-                    {
-                        new Condition(!name.IsSuccess(), "Name is not correct"),
-                        new Condition(!artist.IsSuccess(), "Artist is not correct")
-                    };
-
-                    var validation = c.CheckForErrors();
-
-                    return validation.IsSuccess()
-                        ? RecordingAggregate.Create(id, name.GetValue(), artist.GetValue(), year)
-                        : Result<RecordingAggregate>.Failure(ValidationError.Create(ErrorType.InvalidRecordingAggregate));
-                };
-
-                Func<RecordingAggregate, Task<Result<Unit>>> trySaveAggregate = async agg =>
-                    await _recordingRepo.Save(agg);
-
-                Func<Unit, Task<Result<Unit>>> tryCommit = async agg =>
-                    await _unitOfWork.Commit();
-
-                Func<Guid, Command, Task<Result<Unit>>> createRecording = async (userId, command) =>
-                    await authorize(userId, command)
-                        .SelectMany(validateInput)
-                        .SelectMany(tryCreateAggregate)
-                        .SelectMany(trySaveAggregate)
-                        .SelectMany(tryCommit);
-
-                return createRecording(userId, command);
+                return isSuccess
+                    ? RecordingAggregate.Create(id, name.GetValue(), artist.GetValue(), year)
+                    : Result<RecordingAggregate>.Failure(ValidationError.Create(ErrorType.InvalidRecordingAggregate));
             }
+
+            private async Task<Result<Unit>> TrySaveAggregate(RecordingAggregate agg) => await _recordingRepo.Save(agg);
+            private async Task<Result<Unit>> TryCommit(Unit u) => await _unitOfWork.Commit();
         }
     }
 }
