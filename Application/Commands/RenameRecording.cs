@@ -36,9 +36,13 @@ namespace MyRental
 
             public async Task<Result<Unit>> Handle(Command command)
             {
+                // TODO: Refactor
                 // TODO: Validation
                 var agg = _recordingRepo.GetById(command.Id);
-                agg.Rename(command.Name);
+
+                var name = TrackName.TryCreate(command.Name);
+
+                var x = agg.Rename(name.GetValue());
                 await _recordingRepo.Save(agg);
                 await _unitOfWork.Commit();
 

@@ -42,7 +42,7 @@ namespace MyRental
 
         public async Task<Result<Unit>> Commit()
         {
-            if (_commitHasFailed == true) return Result<Unit>.Failure("Commit has failed before. Please reload");
+            if (_commitHasFailed == true) return Result<Unit>.Failure(SystemError.Create(ErrorType.CommitHasFailed));
 
             try
             {
@@ -61,10 +61,10 @@ namespace MyRental
                 Cleanup();
                 return Result<Unit>.Succeed(new Unit());
             }
-            catch
+            catch (Exception e)
             {
                 _commitHasFailed = true;
-                return Result<Unit>.Failure("Error saving to db");
+                return Result<Unit>.Failure(SystemError.Create(e));
             }
         }
     }

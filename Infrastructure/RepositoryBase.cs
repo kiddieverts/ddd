@@ -25,9 +25,9 @@ namespace MyRental
                 agg.ClearUncommittedEvents();
                 return Result<Unit>.Succeed(new Unit());
             }
-            catch
+            catch (Exception e)
             {
-                return Result<Unit>.Failure("Could not save aggregate to repository");
+                return Result<Unit>.Failure(SystemError.Create(e));
             }
         }
 

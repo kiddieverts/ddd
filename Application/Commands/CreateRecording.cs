@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,7 +14,7 @@ namespace MyRental
         public async Task<ActionResult<string>> CreateRecording([FromBody] CreateRecording.Command command)
         {
             var result = await _mediator.Command(command);
-            return result.Map(r => Ok("ok"), e => ValidationProblem(e.Msg)); // TODO: Make generic
+            return result.Map(r => Ok("ok"), e => ValidationProblem(e.ToString())); // TODO: Make generic
         }
     }
 
@@ -38,7 +39,7 @@ namespace MyRental
 
                 Func<Guid, Command, Result<Command>> authorize = static (Guid uid, Command cmd) => uid == Guid.Parse("68c6ef9d-8e25-48a0-b577-5f8ff1fae643")
                     ? Result<Command>.Succeed(cmd)
-                    : Result<Command>.Failure("Auth error: Not correct user id"); // TODO: Dont use error strings
+                    : Result<Command>.Failure(NotAuthorizedError.Create(ErrorType.AuthorizationFailed));
 
                 Func<Command, Result<Command>> validateInput = static (Command cmd) => // TODO: Refactor !!!
                 {
@@ -70,7 +71,7 @@ namespace MyRental
 
                     return validation.IsSuccess()
                         ? RecordingAggregate.Create(id, name.GetValue(), artist.GetValue(), year)
-                        : Result<RecordingAggregate>.Failure("Failed to create aggregate");
+                        : Result<RecordingAggregate>.Failure(ValidationError.Create(ErrorType.InvalidRecordingAggregate));
                 };
 
                 Func<RecordingAggregate, Task<Result<Unit>>> trySaveAggregate = async agg =>

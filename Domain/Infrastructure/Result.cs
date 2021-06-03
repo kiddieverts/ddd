@@ -3,18 +3,16 @@ using System.Threading.Tasks;
 
 namespace MyRental
 {
-    public record Error(string Msg);
-
     public record Result<T>
     {
-        public Either<Error, T> Value { get; init; }
+        public Either<IError, T> Value { get; init; }
 
         public static Result<T> Succeed(T v) => new Result<T>(v);
-        public static Result<T> Failure(string errorMsg) => new Result<T>(new Error(errorMsg));
+        public static Result<T> Failure(IError err) => new Result<T>(err);
 
-        public Result(T value) => Value = new Right<Error, T>(value);
-        public Result(Error value) => Value = new Left<Error, T>(value);
-        public void OnSuccess(Action<Error> action) => Value.IfLeft(action);
+        public Result(T value) => Value = new Right<IError, T>(value);
+        public Result(IError value) => Value = new Left<IError, T>(value);
+        public void OnSuccess(Action<IError> action) => Value.IfLeft(action);
         public void OnError(Action<T> action) => Value.IfRight(action);
 
         public T GetValue() => Value.Match(Left: error => default(T), Right: result => result); // TODO: Hmmm..
@@ -36,7 +34,7 @@ namespace MyRental
 
         public bool IsSuccess() => Value.Match(Left: error => false, Right: result => true);
 
-        public T1 Map<T1>(Func<T, T1> successFn, Func<Error, T1> errorFn) =>
+        public T1 Map<T1>(Func<T, T1> successFn, Func<IError, T1> errorFn) =>
             Value.Match(Left: error => errorFn(error), Right: result => successFn(result));
     }
 

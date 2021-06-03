@@ -4,28 +4,24 @@ namespace MyRental
 {
     public record TrackName
     {
-        public static Result<TrackName> TryCreate(string Value) =>
-          string.IsNullOrEmpty(Value)
-              ? Result<TrackName>.Failure("Artist name can not be empty.")
-              : Result<TrackName>.Succeed(new TrackName(Value));
-
         public string Value { get; init; }
+        private TrackName(string value) => Value = value;
 
-        private TrackName(string value)
-        {
-            Value = value;
-        }
+        public static Result<TrackName> TryCreate(string value) =>
+            value.IsEmpty()
+              ? Result<TrackName>.Failure(ValidationError.Create(ErrorType.TrackNameEmpty))
+              : Result<TrackName>.Succeed(new TrackName(value));
     }
+
     public record ArtistName
     {
         public string Value { get; init; }
+        private ArtistName(string value) => Value = value;
 
         public static Result<ArtistName> TryCreate(string value) =>
-            string.IsNullOrEmpty(value)
-                ? Result<ArtistName>.Failure("Artist name can not be empty.")
+            value.IsEmpty()
+                ? Result<ArtistName>.Failure(ValidationError.Create(ErrorType.ArtistNameEmpty))
                 : Result<ArtistName>.Succeed(new ArtistName(value));
-
-        private ArtistName(string value) { }
     }
 
     public record Year(int Value);

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 
 namespace MyRental
@@ -12,7 +13,7 @@ namespace MyRental
 
             return errors.Count() == 0
                 ? Result<Unit>.Succeed(new Unit())
-                : Result<Unit>.Failure("Validation errors..." + errors.Aggregate((agg, curr) => agg + "\n" + curr));
+                : Result<Unit>.Failure(ValidationError.Create(new Exception("Validation errors..." + errors.Aggregate((agg, curr) => agg + "\n" + curr))));
         }
     }
 }

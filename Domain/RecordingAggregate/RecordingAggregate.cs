@@ -10,10 +10,9 @@ namespace MyRental
 
         public static Result<RecordingAggregate> Create(TrackId id, TrackName name, ArtistName artist, Year year)
         {
-            if (name.Value == "Random")
-                return Result<RecordingAggregate>.Failure("Error creating RecordingAggregate");
+            if (!IsTrackNameValid(name))
+                return Result<RecordingAggregate>.Failure(ValidationError.Create(ErrorType.NameNotAllowed));
 
-            // TODO: Validation
             var agg = new RecordingAggregate(AggregateRoot.InitalVersion);
             var ev = new RecordingCreatedEvent
             {
@@ -43,12 +42,12 @@ namespace MyRental
             return agg;
         }
 
-        public Result<Unit> Rename(string name)
+        public Result<Unit> Rename(TrackName name)
         {
-            // TODO: Validation
-            if (name == "") return Result<Unit>.Failure("Error renaming...");
+            if (!IsTrackNameValid(name))
+                return Result<Unit>.Failure(ValidationError.Create(ErrorType.NameNotAllowed));
 
-            var ev = new RecordingRenamedEvent(Id, name);
+            var ev = new RecordingRenamedEvent(Id, name.ToString());
             RaiseEvent(ev);
 
             return Result<Unit>.Succeed(new Unit());
@@ -59,6 +58,8 @@ namespace MyRental
             Id = e.Id;
             Name = e.Name;
         }
+
+        private static bool IsTrackNameValid(TrackName name) => name.Value != "Random";
 
         protected override void ApplyEvent(IDomainEvent ev)
         {
