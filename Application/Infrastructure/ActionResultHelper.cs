@@ -19,7 +19,7 @@ namespace MyRental
                 {
                     ValidationError => bs.BadRequest(concatErrors(errors)),
                     DomainError => bs.BadRequest(concatErrors(errors)),
-                    NotAuthorizedError => bs.Unauthorized(concatErrors(errors)),
+                    AuthorizationError => bs.Unauthorized(concatErrors(errors)),
                     SystemError => bs.StatusCode(StatusCodes.Status500InternalServerError, concatErrors(errors)),
                     _ => bs.StatusCode(StatusCodes.Status500InternalServerError, "Not supported")
                 };

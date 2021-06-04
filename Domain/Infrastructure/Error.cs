@@ -2,6 +2,11 @@ using System;
 
 namespace MyRental
 {
+    public record ValidationError : BaseError { }
+    public record AuthorizationError : BaseError { }
+    public record DomainError : BaseError { }
+    public record SystemError : BaseError { }
+
     public interface IError
     {
         ErrorType[] Errors { get; init; }
@@ -12,9 +17,7 @@ namespace MyRental
     {
         public ErrorType[] Errors { get; init; } = new ErrorType[] { };
         public Exception[] Exceptions { get; init; } = new Exception[] { };
-
         protected BaseError() { }
-
         public static BaseError Create(ErrorType err) =>
            new BaseError { Errors = new ErrorType[] { err } };
 
@@ -27,9 +30,4 @@ namespace MyRental
         public static BaseError Create(Exception[] exceptions) =>
             new BaseError { Exceptions = exceptions };
     };
-
-    public record ValidationError : BaseError { }
-    public record NotAuthorizedError : BaseError { }
-    public record DomainError : BaseError { }
-    public record SystemError : BaseError { }
 }
