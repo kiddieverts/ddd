@@ -13,17 +13,17 @@ namespace MyRental
             _userService = userService;
         }
 
-        protected abstract Result<TCommand> Authorize(TCommand cmd);
+        protected abstract Task<Result<TCommand>> Authorize(TCommand cmd);
 
-        protected abstract Result<TCommand> TryValidateInput(TCommand cmd);
+        protected abstract Result<TCommand> ValidateInput(TCommand cmd);
 
         public async Task<Result<Unit>> Handle(TCommand command) =>
             await Authorize(command)
-                .SelectMany(TryValidateInput)
+                .SelectMany(r => Task.FromResult(ValidateInput(r))) // TODO: Lift...
                 .SelectMany(DoMainWork)
-                .SelectMany(TryCommit);
-        protected async Task<Result<Unit>> TryCommit(Unit u) => await _unitOfWork.Commit();
+                .SelectMany(Commit);
+        protected async Task<Result<Unit>> Commit(Unit u) => await _unitOfWork.Commit();
 
-        protected abstract Result<Unit> DoMainWork(TCommand cmd);
+        protected abstract Task<Result<Unit>> DoMainWork(TCommand cmd);
     }
 }

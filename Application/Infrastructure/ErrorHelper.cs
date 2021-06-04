@@ -3,11 +3,11 @@ using System.Linq;
 
 namespace MyRental
 {
-    public static class ErrorHelper
+    public static class Validator
     {
-        public static List<ErrorType> CreateEmptyErrorList() => new List<ErrorType>();
+        public static List<ErrorType> Create() => new List<ErrorType>();
 
-        public static Result<Unit> CheckForErrors(this List<ErrorType> errors) =>
+        public static Result<Unit> ToResult(this List<ErrorType> errors) =>
             errors.Count() == 0
                 ? Result<Unit>.Succeed(new Unit())
                 : Result<Unit>.Failure(ValidationError.Create(errors.ToArray()));

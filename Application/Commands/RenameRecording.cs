@@ -42,7 +42,7 @@ namespace MyRental
 
                 var name = TrackName.TryCreate(command.Name);
 
-                var x = agg.Rename(name.GetValue());
+                //   var x = agg.Rename(name.GetValue());
                 await _recordingRepo.Save(agg);
                 await _unitOfWork.Commit();
 

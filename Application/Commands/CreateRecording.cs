@@ -14,7 +14,7 @@ namespace MyRental
         public async Task<ActionResult<string>> CreateRecording([FromBody] CreateRecording.Command command)
         {
             var result = await _mediator.Command(command);
-            return result.Map(r => Ok("ok"), e => ValidationProblem(e.Errors.Aggregate("", (agg, curr) => agg + curr.ToString() + " ... "))); // TODO: Make generic
+            return result.Map(r => Ok("ok"), e => ValidationProblem(e.First().Errors.Aggregate("", (agg, curr) => agg + curr.ToString() + " ... "))); // TODO: Make generic
         }
     }
 
@@ -22,57 +22,39 @@ namespace MyRental
     {
         public record Command(Guid Id, string Name, string Artist, int Year) : ICommand;
 
-        public class Handler : ICommandHandler<Command>
+        public class Handler : CommandHandlerBase<Command>
         {
-            private readonly IUnitOfWork _unitOfWork;
             private readonly RecordingRepository _recordingRepo;
-            private readonly IUserService _userService;
-
-            public Handler(IUnitOfWork unitOfWork, RecordingRepository recordingRepository, IUserService userService)
+            public Handler(IUnitOfWork unitOfWork, IUserService userService, RecordingRepository recordingRepository)
+                : base(unitOfWork, userService)
             {
-                _unitOfWork = unitOfWork;
                 _recordingRepo = recordingRepository;
-                _userService = userService;
             }
 
-            public async Task<Result<Unit>> Handle(Command command) =>
-                await Authorize(_userService.GetUserId(), command)
-                    .SelectMany(TryValidateInput)
-                    .SelectMany(TryCreateAggregate)
-                    .SelectMany(TrySaveAggregate)
-                    .SelectMany(TryCommit);
+            protected async override Task<Result<Unit>> DoMainWork(Command cmd) =>
+                await ValidateInput(cmd)
+                    .SelectMany(CreateAggregate)
+                    .SelectMany(SaveAggregate);
 
-            private static Result<Command> Authorize(Guid uid, Command cmd) => true
-                ? Result<Command>.Succeed(cmd)
-                : Result<Command>.Failure(NotAuthorizedError.Create(ErrorType.AuthorizationFailed));
+            protected override Task<Result<Command>> Authorize(Command cmd) =>
+                Task.FromResult(Result<Command>.Succeed(cmd));
 
-            private static Result<Command> TryValidateInput(Command cmd) =>
-                ErrorHelper.CreateEmptyErrorList()
+            protected override Result<Command> ValidateInput(Command cmd) =>
+                Validator.Create()
                     .Validate(cmd.Artist.IsEmpty(), ErrorType.ArtistNameEmpty)
                     .Validate(cmd.Name.IsEmpty(), ErrorType.NameNotAllowed)
-                    .CheckForErrors()
+                    .ToResult()
                     .Select(r => cmd);
 
-            private Result<RecordingAggregate> TryCreateAggregate(Command cmd)
-            {
-                var id = new TrackId(cmd.Id);
-                var name = TrackName.TryCreate(cmd.Name);
-                var artist = ArtistName.TryCreate(cmd.Artist);
-                var year = new Year(cmd.Year);
+            private Result<RecordingAggregate> CreateAggregate(Command cmd) =>
+                ParallelValidator.Create(new ValidationObj())
+                    .Validate(TrackName.TryCreate(cmd.Name), (o, r) => o with { TrackName = r })
+                    .Validate(ArtistName.TryCreate(cmd.Artist), (o, r) => o with { ArtistName = r })
+                    .ToResult()
+                    .SelectMany(res => RecordingAggregate.Create(new TrackId(cmd.Id), res.TrackName, res.ArtistName, new Year(cmd.Year)));
 
-                var isSuccess = ErrorHelper.CreateEmptyErrorList()
-                    .Validate(!name.IsSuccess(), ErrorType.ArtistNameEmpty)
-                    .Validate(!artist.IsSuccess(), ErrorType.NameNotAllowed)
-                    .CheckForErrors()
-                    .IsSuccess();
-
-                return isSuccess
-                    ? RecordingAggregate.Create(id, name.GetValue(), artist.GetValue(), year)
-                    : Result<RecordingAggregate>.Failure(ValidationError.Create(ErrorType.InvalidRecordingAggregate));
-            }
-
-            private async Task<Result<Unit>> TrySaveAggregate(RecordingAggregate agg) => await _recordingRepo.Save(agg);
-            private async Task<Result<Unit>> TryCommit(Unit u) => await _unitOfWork.Commit();
+            private record ValidationObj(TrackName TrackName = default(TrackName), ArtistName ArtistName = default(ArtistName));
+            private async Task<Result<Unit>> SaveAggregate(RecordingAggregate agg) => await _recordingRepo.Save(agg);
         }
     }
 }
