@@ -7,13 +7,14 @@ namespace MyRental
 {
     public class CreateRecordingController : BaseController
     {
-        public CreateRecordingController(IMediator mediator) : base(mediator) { }
+        public CreateRecordingController(IMediator mediator, IUnitOfWork unitOfWork) : base(mediator, unitOfWork) { }
 
         [HttpPost]
         [Route("test")]
         public async Task<ActionResult<string>> CreateRecording([FromBody] CreateRecording.Command command)
         {
-            var result = await _mediator.Command(command);
+            var result = await _mediator.Command(command).SelectMany(Commit);
+
             return result.Map(r => Ok("ok"), e => ValidationProblem(e.First().Errors.Aggregate("", (agg, curr) => agg + curr.ToString() + " ... "))); // TODO: Make generic
         }
     }

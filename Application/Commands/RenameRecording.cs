@@ -6,7 +6,7 @@ namespace MyRental
 {
     public class RenameRecordingController : BaseController
     {
-        public RenameRecordingController(IMediator mediator) : base(mediator) { }
+        public RenameRecordingController(IMediator mediator, IUnitOfWork unitOfWork) : base(mediator, unitOfWork) { }
 
         [HttpGet("test/rename")]
         public async Task<ActionResult<string>> RenameRecording([FromQuery] Guid id)

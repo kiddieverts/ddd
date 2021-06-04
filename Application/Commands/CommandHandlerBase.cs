@@ -20,9 +20,7 @@ namespace MyRental
         public async Task<Result<Unit>> Handle(TCommand command) =>
             await Authorize(command)
                 .SelectMany(ValidateInput)
-                .SelectMany(DoMainWork)
-                .SelectMany(Commit);
-        protected async Task<Result<Unit>> Commit(Unit u) => await _unitOfWork.Commit();
+                .SelectMany(DoMainWork);
 
         protected abstract Task<Result<Unit>> DoMainWork(TCommand cmd);
     }
