@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace MyRental
+namespace DDDExperiment
 {
     public class RenameRecording
     {

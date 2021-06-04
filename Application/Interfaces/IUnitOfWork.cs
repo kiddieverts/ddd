@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace MyRental
+namespace DDDExperiment
 {
     public interface IUnitOfWork
     {

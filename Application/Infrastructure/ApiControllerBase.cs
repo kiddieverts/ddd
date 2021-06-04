@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
-namespace MyRental
+namespace DDDExperiment
 {
     [ApiController]
     public class ApiControllerBase : ControllerBase

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MyRental
+namespace DDDExperiment
 {
     public static class ParallelValidator
     {

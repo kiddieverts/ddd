@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace MyRental
+namespace DDDExperiment
 {
     public record PersistedEvent(string ev, long AggregateVersion, Guid AggregateId);
     public record Recording(Guid Id, string Name, string Artist, int Year);

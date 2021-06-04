@@ -3,7 +3,7 @@ using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace MyRental
+namespace DDDExperiment
 {
     public static class ActionResultHelper
     {

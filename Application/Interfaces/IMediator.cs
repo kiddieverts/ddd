@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace MyRental
+namespace DDDExperiment
 {
     public interface ICommand { }
     public interface IQuery<T> { }

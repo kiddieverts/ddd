@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>MyRental</RootNamespace>
+    <RootNamespace>DDDExperiment</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

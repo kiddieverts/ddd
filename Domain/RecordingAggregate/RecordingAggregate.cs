@@ -1,6 +1,6 @@
 using System;
 
-namespace MyRental
+namespace DDDExperiment
 {
     public class RecordingAggregate : AggregateRoot
     {

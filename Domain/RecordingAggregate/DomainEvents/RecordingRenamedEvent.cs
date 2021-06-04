@@ -1,6 +1,6 @@
 using System;
 
-namespace MyRental
+namespace DDDExperiment
 {
     public record RecordingRenamedEvent(Guid Id, string Name) : IDomainEvent;
 }

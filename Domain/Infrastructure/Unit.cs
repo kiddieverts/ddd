@@ -1,4 +1,4 @@
-namespace MyRental
+namespace DDDExperiment
 {
     public record Unit() { }
 }

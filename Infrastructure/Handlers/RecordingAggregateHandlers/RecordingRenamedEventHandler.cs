@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MyRental
+namespace DDDExperiment
 {
     public class RecordingRenamedEventHandler
     {

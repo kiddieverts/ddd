@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace MyRental
+namespace DDDExperiment
 {
     public abstract class RepositoryBase<T>
     {

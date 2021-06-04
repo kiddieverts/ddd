@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 
-namespace MyRental
+namespace DDDExperiment
 {
     public class Startup
     {
@@ -22,7 +22,7 @@ namespace MyRental
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "MyRental", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "DDDExperiment", Version = "v1" });
             });
 
             services.AddTransient<IEventBus, MyEventBus>();
@@ -42,7 +42,7 @@ namespace MyRental
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "MyRental v1"));
+                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "DDDExperiment v1"));
             }
 
             // app.UseHttpsRedirection();
