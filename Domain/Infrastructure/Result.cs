@@ -7,15 +7,13 @@ namespace MyRental
 {
     public record Result<T>
     {
-        public Either<IError[], T> Value { get; init; }
+        public Either<IError, T> Value { get; init; }
 
         public static Result<T> Succeed(T v) => new Result<T>(v);
-        public static Result<T> Failure(ICollection<IError> err) => new Result<T>(err.ToArray());
-        public static Result<T> Failure(IError err) => new Result<T>(new IError[] { err });
+        public static Result<T> Failure(IError err) => new Result<T>(err);
 
-
-        public Result(T value) => Value = new Right<IError[], T>(value);
-        public Result(IError[] value) => Value = new Left<IError[], T>(value);
+        public Result(T value) => Value = new Right<IError, T>(value);
+        public Result(IError value) => Value = new Left<IError, T>(value);
 
         // public Result(IError value) => Value = new Left<IError[], T>(new IError[] { value });
 
@@ -31,7 +29,7 @@ namespace MyRental
         public Task<Result<T1>> SelectMany<T1>(Func<T, Task<Result<T1>>> func) =>
             Value.Match(Left: e => Task.FromResult(new Result<T1>(e)), Right: r => func(r));
 
-        public T1 Map<T1>(Func<T, T1> successFn, Func<IError[], T1> errorFn) =>
+        public T1 Map<T1>(Func<T, T1> successFn, Func<IError, T1> errorFn) =>
             Value.Match(Left: error => errorFn(error), Right: result => successFn(result));
     }
 

@@ -29,5 +29,5 @@ namespace MyRental
 
         public static BaseError Create(Exception[] exceptions) =>
             new BaseError { Exceptions = exceptions };
-    };
+    }
 }

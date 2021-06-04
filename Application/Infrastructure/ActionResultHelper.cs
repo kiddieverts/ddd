@@ -9,18 +9,17 @@ namespace MyRental
     {
         public static ActionResult<T> ToActionResult<T>(this Result<T> result, ApiControllerBase bs)
         {
-            return result.Map(result => bs.Ok(result), errors =>
+            return result.Map(result => bs.Ok(result), err =>
             {
-                Func<IError[], string> concatErrors = err => err
-                    .SelectMany(r => r.Errors)
+                Func<IError, string> concatErrors = err => err.Errors
                     .Aggregate("", (agg, curr) => agg + curr.ToString() + "\n");
 
-                return errors.First() switch // TODO: Hmmm....
+                return err switch
                 {
-                    ValidationError => bs.BadRequest(concatErrors(errors)),
-                    DomainError => bs.BadRequest(concatErrors(errors)),
-                    AuthorizationError => bs.Unauthorized(concatErrors(errors)),
-                    SystemError => bs.StatusCode(StatusCodes.Status500InternalServerError, concatErrors(errors)),
+                    ValidationError => bs.BadRequest(concatErrors(err)),
+                    DomainError => bs.BadRequest(concatErrors(err)),
+                    AuthorizationError => bs.Unauthorized(concatErrors(err)),
+                    SystemError => bs.StatusCode(StatusCodes.Status500InternalServerError, concatErrors(err)),
                     _ => bs.StatusCode(StatusCodes.Status500InternalServerError, "Not supported")
                 };
             });

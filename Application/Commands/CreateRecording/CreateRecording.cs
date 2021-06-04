@@ -37,7 +37,7 @@ namespace MyRental
                     .Select(r => cmd);
 
             private Result<RecordingAggregate> CreateAggregate(Command cmd) =>
-                ParallelValidator.Create(new ValidationObj())
+                ParallelValidator.Create(new ValidationError(), new ValidationObj())
                     .Validate(TrackName.TryCreate(cmd.Name), (o, r) => o with { TrackName = r })
                     .Validate(ArtistName.TryCreate(cmd.Artist), (o, r) => o with { ArtistName = r })
                     .ToResult()
