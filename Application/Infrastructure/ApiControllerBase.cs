@@ -4,12 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace MyRental
 {
     [ApiController]
-    public class BaseController : ControllerBase
+    public class ApiControllerBase : ControllerBase
     {
         protected readonly IMediator _mediator;
         private readonly IUnitOfWork _unitOfWork;
 
-        public BaseController(IMediator mediator, IUnitOfWork unitOfWork)
+        public ApiControllerBase(IMediator mediator, IUnitOfWork unitOfWork)
         {
             _mediator = mediator;
             _unitOfWork = unitOfWork;

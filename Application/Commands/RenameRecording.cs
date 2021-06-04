@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MyRental
 {
-    public class RenameRecordingController : BaseController
+    public class RenameRecordingController : ApiControllerBase
     {
         public RenameRecordingController(IMediator mediator, IUnitOfWork unitOfWork) : base(mediator, unitOfWork) { }
 

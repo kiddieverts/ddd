@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace MyRental
 {
-    public class CreateRecordingController : BaseController
+    public class CreateRecordingController : ApiControllerBase
     {
         public CreateRecordingController(IMediator mediator, IUnitOfWork unitOfWork) : base(mediator, unitOfWork) { }
 
