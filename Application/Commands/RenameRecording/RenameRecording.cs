@@ -26,8 +26,7 @@ namespace MyRental
                     _recordingRepo.Save(agg);
 
                 Func<RecordingAggregate, Result<RecordingAggregate>> rename = agg =>
-                    TrackName.TryCreate(command.Name)
-                        .SelectMany(name => { agg.Rename(name); return Result<RecordingAggregate>.Succeed(agg); });
+                    TrackName.TryCreate(command.Name).SelectMany(name => agg.Rename(name));
 
                 return await getAggregateResult
                     .SelectMany(rename)

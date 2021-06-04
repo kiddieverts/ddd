@@ -42,15 +42,15 @@ namespace MyRental
             return agg;
         }
 
-        public Result<Unit> Rename(TrackName name)
+        public Result<RecordingAggregate> Rename(TrackName name)
         {
             if (!IsTrackNameValid(name))
-                return Result<Unit>.Failure(ValidationError.Create(ErrorType.NameNotAllowed));
+                return Result<RecordingAggregate>.Failure(ValidationError.Create(ErrorType.NameNotAllowed));
 
             var ev = new RecordingRenamedEvent(Id, name.ToString());
             RaiseEvent(ev);
 
-            return Result<Unit>.Succeed(new Unit());
+            return Result<RecordingAggregate>.Succeed(this);
         }
 
         private void Apply(RecordingRenamedEvent e)
