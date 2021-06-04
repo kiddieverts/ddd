@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,11 +10,10 @@ namespace MyRental
 
         [HttpPost]
         [Route("test")]
-        public async Task<ActionResult<string>> CreateRecording([FromBody] CreateRecording.Command command)
+        public async Task<ActionResult<Unit>> CreateRecording([FromBody] CreateRecording.Command command)
         {
             var result = await _mediator.Command(command).SelectMany(Commit);
-
-            return result.Map(r => Ok("ok"), e => ValidationProblem(e.First().Errors.Aggregate("", (agg, curr) => agg + curr.ToString() + " ... "))); // TODO: Make generic
+            return result.ToActionResult(this);
         }
     }
 
@@ -23,24 +21,29 @@ namespace MyRental
     {
         public record Command(Guid Id, string Name, string Artist, int Year) : ICommand;
 
-        public class Handler : CommandHandlerBase<Command>
+        public class Handler : ICommandProcessHandler<Command>, ICommandHandler<Command>
         {
+            private readonly IUserService _userService;
             private readonly RecordingRepository _recordingRepo;
-            public Handler(IUnitOfWork unitOfWork, IUserService userService, RecordingRepository recordingRepository)
-                : base(unitOfWork, userService)
+
+            public Handler(IUserService userService, RecordingRepository recordingRepository)
             {
+                _userService = userService;
                 _recordingRepo = recordingRepository;
             }
 
-            protected async override Task<Result<Unit>> DoMainWork(Command cmd) =>
+            public async Task<Result<Unit>> Handle(Command command) =>
+                await this.ProcessFullRequest(command);
+
+            public async Task<Result<Unit>> DoMainWork(Command cmd) =>
                 await ValidateInput(cmd)
                     .SelectMany(CreateAggregate)
                     .SelectMany(SaveAggregate);
 
-            protected override Task<Result<Command>> Authorize(Command cmd) =>
+            public Task<Result<Command>> Authorize(Command cmd) =>
                 Task.FromResult(Result<Command>.Succeed(cmd));
 
-            protected override Result<Command> ValidateInput(Command cmd) =>
+            public Result<Command> ValidateInput(Command cmd) =>
                 Validator.Create()
                     .Validate(cmd.Artist.IsEmpty(), ErrorType.ArtistNameEmpty)
                     .Validate(cmd.Name.IsEmpty(), ErrorType.NameNotAllowed)
@@ -54,8 +57,8 @@ namespace MyRental
                     .ToResult()
                     .SelectMany(res => RecordingAggregate.Create(new TrackId(cmd.Id), res.TrackName, res.ArtistName, new Year(cmd.Year)));
 
-            private record ValidationObj(TrackName TrackName = default(TrackName), ArtistName ArtistName = default(ArtistName));
             private async Task<Result<Unit>> SaveAggregate(RecordingAggregate agg) => await _recordingRepo.Save(agg);
+            private record ValidationObj(TrackName TrackName = default(TrackName), ArtistName ArtistName = default(ArtistName));
         }
     }
 }
