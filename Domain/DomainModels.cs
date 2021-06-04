@@ -9,8 +9,8 @@ namespace MyRental
 
         public static Result<TrackName> TryCreate(string value) =>
             value.IsEmpty()
-              ? Result<TrackName>.Failure(ValidationError.Create(ErrorType.TrackNameEmpty))
-              : Result<TrackName>.Succeed(new TrackName(value));
+                ? Result<TrackName>.Failure(ValidationError.Create(ErrorType.TrackNameEmpty))
+                : Result<TrackName>.Succeed(new TrackName(value));
     }
 
     public record ArtistName
