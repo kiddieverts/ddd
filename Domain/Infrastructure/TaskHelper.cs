@@ -10,5 +10,7 @@ namespace MyRental
             var r = await result;
             return await r.SelectMany(f);
         }
+
+        public static Task<Result<T>> SelectMany<T>(this Task<Result<T>> result, Func<T, Result<T>> f) => result;
     }
 }
