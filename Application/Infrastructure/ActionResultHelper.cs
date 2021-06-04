@@ -20,6 +20,7 @@ namespace MyRental
                     DomainError => bs.BadRequest(concatErrors(err)),
                     AuthorizationError => bs.Unauthorized(concatErrors(err)),
                     SystemError => bs.StatusCode(StatusCodes.Status500InternalServerError, concatErrors(err)),
+                    NotFoundError => bs.NotFound("404"),
                     _ => bs.StatusCode(StatusCodes.Status500InternalServerError, "Not supported")
                 };
             });

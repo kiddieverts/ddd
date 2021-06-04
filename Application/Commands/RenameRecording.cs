@@ -1,56 +1,42 @@
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 
 namespace MyRental
 {
-    public class RenameRecordingController : ApiControllerBase
-    {
-        public RenameRecordingController(IMediator mediator, IUnitOfWork unitOfWork) : base(mediator, unitOfWork) { }
-
-        [HttpGet("test/rename")]
-        public async Task<ActionResult<string>> RenameRecording([FromQuery] Guid id)
-        {
-            var command = new RenameRecording.Command(id, "Test");
-
-            await _mediator.Command(command);
-
-            return "ok";
-        }
-    }
-
     public class RenameRecording
     {
         public record Command(Guid Id, string Name) : ICommand;
 
-        public class Handler : ICommandHandler<Command>
+        public class Handler : ICommandHandler<Command>, ICommandProcessHandler<Command>
         {
-            private readonly IUnitOfWork _unitOfWork;
             private readonly RecordingRepository _recordingRepo;
 
-            public Handler(IUnitOfWork unitOfWork, RecordingRepository recordingRepository)
+            public Handler(RecordingRepository recordingRepository)
             {
-                _unitOfWork = unitOfWork;
                 _recordingRepo = recordingRepository;
             }
 
-            public async Task<Result<Unit>> Handle(Command command)
+            public async Task<Result<Unit>> Handle(Command command) => await this.ProcessFullRequest(command);
+
+            public async Task<Result<Unit>> DoMainWork(Command command)
             {
-                // TODO: Refactor
-                // TODO: Validation
-                var agg = _recordingRepo.GetById(command.Id);
+                var getAggregateResult = _recordingRepo.GetById(command.Id);
 
-                var name = TrackName.TryCreate(command.Name);
+                Func<RecordingAggregate, Task<Result<Unit>>> saveAggregate = agg =>
+                    _recordingRepo.Save(agg);
 
-                //   var x = agg.Rename(name.GetValue());
-                await _recordingRepo.Save(agg);
-                await _unitOfWork.Commit();
+                Func<RecordingAggregate, Result<RecordingAggregate>> rename = agg =>
+                    TrackName.TryCreate(command.Name)
+                        .SelectMany(name => { agg.Rename(name); return Result<RecordingAggregate>.Succeed(agg); });
 
-                var agg2 = _recordingRepo.GetById(command.Id);
-                Console.WriteLine("FROM DB ... " + agg2.Name);
-
-                return Result<Unit>.Succeed(new Unit());
+                return await getAggregateResult
+                    .SelectMany(rename)
+                    .SelectMany(saveAggregate);
             }
+
+            public Task<Result<Command>> Authorize(Command cmd) => Task.FromResult(Result<Command>.Succeed(cmd));
+
+            public Result<Command> ValidateInput(Command cmd) => Result<Command>.Succeed(cmd);
         }
     }
 }

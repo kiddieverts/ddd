@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MyRental
 {
@@ -8,13 +9,17 @@ namespace MyRental
         public RecordingRepository(IUnitOfWork unitOfWork, Database db)
             : base(unitOfWork, db) { }
 
-        public override RecordingAggregate GetById(Guid id)
+        public Task<Result<RecordingAggregate>> GetById(Guid id)
         {
             var recordingFromDb = _db.Recordings.FirstOrDefault(r => r.Id == id);
+
+            if (recordingFromDb is null)
+                return Task.FromResult(Result<RecordingAggregate>.Failure(new NotFoundError()));
+
             long? version = GetAggregateVersion(id);
             var input = new RecordingAggregate.CreateFromDbInput(recordingFromDb.Id, recordingFromDb.Name);
 
-            return RecordingAggregate.CreateFromDb(input, version);
+            return Task.FromResult(Result<RecordingAggregate>.Succeed(RecordingAggregate.CreateFromDb(input, version)));
         }
     }
 }

@@ -15,7 +15,7 @@ namespace MyRental
             _db = db;
         }
 
-        public abstract T GetById(Guid id);
+        // public abstract T GetById(Guid id);
 
         public async Task<Result<Unit>> Save(RecordingAggregate agg)
         {

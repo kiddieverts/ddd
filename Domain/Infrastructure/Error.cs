@@ -6,6 +6,7 @@ namespace MyRental
     public record AuthorizationError : BaseError { }
     public record DomainError : BaseError { }
     public record SystemError : BaseError { }
+    public record NotFoundError : BaseError { }
 
     public interface IError
     {

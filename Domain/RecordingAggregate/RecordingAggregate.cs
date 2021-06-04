@@ -67,7 +67,7 @@ namespace MyRental
             {
                 RecordingCreatedEvent => () => Apply((RecordingCreatedEvent)ev),
                 RecordingRenamedEvent => () => Apply((RecordingRenamedEvent)ev),
-                _ => () => throw new Exception("Not supported") // TODO: Hmmm
+                _ => () => { }
             };
 
             fn();

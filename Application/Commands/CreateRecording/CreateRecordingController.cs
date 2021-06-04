@@ -8,7 +8,7 @@ namespace MyRental
         public CreateRecordingController(IMediator mediator, IUnitOfWork unitOfWork) : base(mediator, unitOfWork) { }
 
         [HttpPost]
-        [Route("test")]
+        [Route("recordings")]
         public async Task<ActionResult<Unit>> CreateRecording([FromBody] CreateRecording.Command command)
         {
             var result = await _mediator.Command(command).SelectMany(Commit);

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace MyRental
@@ -27,15 +28,18 @@ namespace MyRental
 
         public Task Save<T>(T agg) where T : AggregateRoot
         {
-            var i = agg.Version;
-            foreach (var ev in agg.GetUncommittedEvents())
-            {
-                i++; // TODO: <-- hmmmm
-                var persistedEvent = new PersistedEvent(ev.ToString(), i, agg.Id); // TODO: Store as Serialized JSON
+            var x = agg.GetUncommittedEvents()
+                .Select((ev, i) =>
+                {
+                    var version = agg.Version + i + 1;
+                    var persistedEvent = new PersistedEvent(ev.ToString(), version, agg.Id); // TODO: Store as Serialized JSON
+                    return (ev, persistedEvent);
+                });
 
-                _uncommitedEvents.Add(ev);
-                _uncommitedPersistedEvents.Add(persistedEvent);
-            }
+            var (domainEvents, persistedEvents) = (x.Select(e => e.ev), x.Select(e => e.persistedEvent));
+
+            _uncommitedEvents = _uncommitedEvents.Concat(domainEvents).ToList();
+            _uncommitedPersistedEvents = _uncommitedPersistedEvents.Concat(persistedEvents).ToList();
 
             return Task.CompletedTask;
         }
